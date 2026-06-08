@@ -44,3 +44,4 @@ macro_rules! link {
 }
 
 link!("kernel32.dll" "system" fn GetStdHandle(nstdhandle : STD_HANDLE) -> HANDLE);
+link!("kernel32.dll" "system" fn WriteConsoleW(hconsoleoutput : HANDLE, lpbuffer : PCWSTR, nnumberofcharstowrite : u32, lpnumberofcharswritten : *mut u32, lpreserved : *const core::ffi::c_void) -> BOOL);
