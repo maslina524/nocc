@@ -1,7 +1,9 @@
 #![no_std]
 
 mod io;
+use io::Io;
 
 fn main() {
-    println!("Hello, world!");
+    let io = Io::new();
+    io.print("Hello World!");
 }
