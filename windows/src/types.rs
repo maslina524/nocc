@@ -1,0 +1,1 @@
+pub type STD_HANDLE = u32;
