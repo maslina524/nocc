@@ -1,0 +1,4 @@
+use crate::types::*;
+
+pub const STD_INPUT_HANDLE: STD_HANDLE = 4294967286u32;
+pub const STD_OUTPUT_HANDLE: STD_HANDLE = 4294967285u32;

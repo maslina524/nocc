@@ -1,5 +1,8 @@
 #![allow(non_snake_case, non_upper_case_globals, non_camel_case_types, dead_code, clippy::all)]
 
+use crate::types::*;
+use crate::consts::*;
+
 // macros have been extracted from the std library
 macro_rules! link_raw_dylib {
     ($library:literal $abi:literal $($link_name:literal)? $(#[$doc:meta])? fn $($function:tt)*) => (
@@ -40,3 +43,4 @@ macro_rules! link {
     )
 }
 
+link!("kernel32.dll" "system" fn GetStdHandle(nstdhandle : STD_HANDLE) -> HANDLE);
