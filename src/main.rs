@@ -3,10 +3,12 @@
 
 mod io;
 mod logos;
+mod os;
 
 use core::panic::PanicInfo;
 use io::Io;
 use logos::*;
+use os::get_user_name;
 
 #[cfg(not(test))]
 #[panic_handler]
@@ -30,8 +32,11 @@ pub extern "C" fn main() -> i32 {
 
     // CREATE INFO BUFFER
     let mut info_buf = [""; LINES];
-    info_buf[0] = "Hello";
-    info_buf[1] = "Windows";
+
+    // USER NAME@PC NAME
+    let binding = get_user_name();
+    let mut cur_buf = [0; 255];
+    let v = "\x1b[1;34m".as_bytes();
 
     // PRINT BUFFERS
     for i in 0..LINES {
@@ -48,4 +53,11 @@ pub extern "C" fn main() -> i32 {
 
     io.print(ESC_ANSII);
     0
+}
+
+fn paste_to_buf(buf: &mut [u8], string: &str, index: usize) {
+    let bytes = string.as_bytes();
+    for (i, ch) in bytes.iter().enumerate() {
+        buf[index + i] = ch.clone();
+    }
 }
