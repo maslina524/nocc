@@ -13,6 +13,10 @@ use logos::*;
 fn panic(_info: &PanicInfo) -> ! {
     loop {}
 }
+
+const ESC_ANSII: &str = "\x1b[0m";
+const LINE_LEN_WITH_INDENT: usize = 55;
+
 #[unsafe(no_mangle)]
 pub extern "C" fn main() -> i32 {
     let io = Io::new();
@@ -34,12 +38,14 @@ pub extern "C" fn main() -> i32 {
         let string = logo_buf[i];
 
         io.print(string);
-        for _ in string.len()..LINE_LEN {
+        for _ in string.len()..LINE_LEN_WITH_INDENT {
             io.print(" ");
         }
+        io.print(ESC_ANSII);
         io.print(info_buf[i]);
         io.print("\n");
     }
 
+    io.print(ESC_ANSII);
     0
 }
