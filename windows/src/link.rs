@@ -1,7 +1,4 @@
-#![allow(non_snake_case, non_upper_case_globals, non_camel_case_types, dead_code, clippy::all)]
-
 use crate::types::*;
-use crate::consts::*;
 
 // macros have been extracted from the std library
 macro_rules! link_raw_dylib {
@@ -45,3 +42,4 @@ macro_rules! link {
 
 link!("kernel32.dll" "system" fn GetStdHandle(nstdhandle : STD_HANDLE) -> HANDLE);
 link!("kernel32.dll" "system" fn WriteConsoleW(hconsoleoutput : HANDLE, lpbuffer : PCWSTR, nnumberofcharstowrite : u32, lpnumberofcharswritten : *mut u32, lpreserved : *const core::ffi::c_void) -> BOOL);
+link!("kernel32.dll" "system" fn GetEnvironmentVariableW(lpname : PCWSTR, lpbuffer : PWSTR, nsize : u32) -> u32);
