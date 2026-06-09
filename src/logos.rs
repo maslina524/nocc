@@ -1,4 +1,6 @@
 // 42 x 21
+pub const LINES: usize = 21;
+pub const LINE_LEN: usize = 42;
 
 pub const WIN11: [&'static str; 21] = [
     "WWWWWWWWWWWWWWWWWW    WWWWWWWWWWWWWWWWWW",
