@@ -1,6 +1,7 @@
 use crate::types::*;
 
 // macros have been extracted from the std library
+#[cfg(feature = "windows_raw_dylib")]
 macro_rules! link_raw_dylib {
     ($library:literal $abi:literal $($link_name:literal)? $(#[$doc:meta])? fn $($function:tt)*) => (
         #[cfg_attr(not(target_arch = "x86"), link(name = $library, kind = "raw-dylib", modifiers = "+verbatim"))]
