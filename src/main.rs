@@ -39,22 +39,17 @@ pub extern "C" fn main() -> i32 {
 
     // USER NAME@PC NAME
     let mut cur_buf = [0; 255];
-    paste_to_buf(&mut cur_buf, "\x1b[1;34m".as_bytes(), 0);
     let mut pos = "\x1b[1;34m".len();
 
-    let name = os::get_user_name();
-    let name_len = name.iter().position(|&b| b == 0).unwrap_or(name.len());
-    paste_to_buf(&mut cur_buf, &name[..name_len], pos);
+    pos += paste_to_buf(&mut cur_buf, "\x1b[1;34m".as_bytes(), pos);
+    let name_len = os::get_user_name(&mut cur_buf[pos..]);
     pos += name_len;
+    pos += paste_to_buf(&mut cur_buf, "\x1b[0m@\x1b[1;34m".as_bytes(), pos);
+    let pc_len = os::get_pc_name(&mut cur_buf[pos..]);
+    pos += pc_len;
 
-    let string = "\x1b[0m@\x1b[1;34m";
-    paste_to_buf(&mut cur_buf, string.as_bytes(), pos);
-    pos += string.len();
-
-    let pc_name = os::get_pc_name();
-    let pc_name_len = pc_name.iter().position(|&b| b == 0).unwrap_or(pc_name.len());
-    paste_to_buf(&mut cur_buf, &pc_name[..pc_name_len], pos);
-    info_buf[0] = unsafe { str::from_utf8_unchecked(&cur_buf) };
+    let info_line = core::str::from_utf8(&cur_buf[..pos]).unwrap_or("Invalid UTF-8");
+    info_buf[0] = info_line;
 
     // PRINT BUFFERS
     for i in 0..LINES {
@@ -73,8 +68,9 @@ pub extern "C" fn main() -> i32 {
     0
 }
 
-fn paste_to_buf(buf: &mut [u8], bytes: &[u8], index: usize) {
+fn paste_to_buf(buf: &mut [u8], bytes: &[u8], index: usize) -> usize {
     for (i, ch) in bytes.iter().enumerate() {
-        buf[index + i] = ch.clone();
+        buf[index + i] = *ch;
     }
+    bytes.len()
 }

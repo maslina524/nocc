@@ -29,6 +29,7 @@ pub fn utf16le_to_utf8(s: &[u16], buffer: &mut [u8]) -> usize {
     while i < s.len() {
         let c = s[i];
         i += 1;
+        if c == 0 { break; }
 
         let code_point = if c >= 0xD800 && c <= 0xDBFF {
             if i >= s.len() { break; }

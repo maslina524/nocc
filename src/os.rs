@@ -12,19 +12,14 @@ fn get_env(name: &str) -> [u16; 256] {
     buf
 }
 
-pub fn get_user_name() -> [u8; 256] {
+pub fn get_user_name(buf: &mut [u8]) -> usize {
     let env_v = get_env("USERNAME");
-    let mut buf = [0; 256];
-    utf16le_to_utf8(&env_v, &mut buf);
-    buf
+    utf16le_to_utf8(&env_v, buf)
 }
 
-pub fn get_pc_name() -> [u8; 256] {
-    let mut pc_buf = [0; 256];
+pub fn get_pc_name(buf: &mut [u8]) -> usize {
+    let mut pc_buf = [0u16; 256];
     let mut dword = 256u32;
     unsafe { GetComputerNameExW(COMPUTER_NAME_DNS_HOSTNAME, pc_buf.as_mut_ptr(), &mut dword); }
-
-    let mut buf = [0; 256];
-    utf16le_to_utf8(&pc_buf, &mut buf);
-    buf
+    utf16le_to_utf8(&pc_buf, buf)
 }
