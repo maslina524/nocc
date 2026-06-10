@@ -10,8 +10,6 @@ use io::Io;
 use logos::*;
 use windows::types::RTL_OSVERSIONINFOW;
 
-use crate::os::get_os_ver;
-
 #[cfg(not(test))]
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
@@ -58,7 +56,7 @@ pub extern "C" fn main() -> i32 {
     info_buf[1] = "---------------";
 
     // OS NAME
-    let osvi = get_os_ver();
+    let osvi = os::get_os_ver_win();
     let mut temp_buf = [0u8; 256];
     let os_str = os_ver_as_str(&mut temp_buf, osvi);
     info_buf[2] = os_str;
@@ -106,16 +104,41 @@ fn u32_to_str<'a>(mut n: u32, buffer: &'a mut [u8; 10]) -> &'a str {
 }
 
 fn os_ver_as_str<'a>(temp_buf: &'a mut [u8], osvi: RTL_OSVERSIONINFOW) -> &'a str {
-    let name = if cfg!(target_os = "windows") {
-        "Windows"
-    } else if cfg!(target_os = "linux") {
-        "Linux"
-    } else if cfg!(target_os = "macos") {
-        "MacOS"
-    } else {
-        "Unknown"
-    };
+    let mut pos = 0;
+    pos += paste_to_buf(temp_buf, "\x1b[38;2;255;165;0mOS: \x1b[0m".as_bytes(), pos);
 
-    let len = paste_to_buf(temp_buf, name.as_bytes(), 0);
-    unsafe { core::str::from_utf8_unchecked(&temp_buf[..len]) }
+    let name = if cfg!(target_os = "windows") {
+        "Windows "
+    } else if cfg!(target_os = "linux") {
+        "Linux "
+    } else if cfg!(target_os = "macos") {
+        "MacOS "
+    } else {
+        "Unknown "
+    };
+    pos += paste_to_buf(temp_buf, name.as_bytes(), pos);
+
+    let build = if cfg!(target_os = "windows") {
+        match (osvi.dwMajorVersion, osvi.dwMinorVersion, osvi.dwBuildNumber) {
+            (6, 1, 7600) => "7 RTM",
+            (6, 1, 7601) => "7 SP1",
+            (6, 2, 9200) => "8",
+            (6, 3, 9600) => "8.1",
+            (10, 0, build) if build >= 22000 => "11",
+            (10, 0, build) if build >= 10240 => "10",
+            _ => "Unknown",
+        }
+    } else { "" };
+    pos += paste_to_buf(temp_buf, build.as_bytes(), pos);
+    pos += paste_to_buf(temp_buf, " (".as_bytes(), pos);
+
+    let mut num_buf = [0u8; 10];
+    pos += paste_to_buf(temp_buf, u32_to_str(osvi.dwMajorVersion, &mut num_buf).as_bytes(), pos);
+    pos += paste_to_buf(temp_buf, ".".as_bytes(), pos);
+    pos += paste_to_buf(temp_buf, u32_to_str(osvi.dwMinorVersion, &mut num_buf).as_bytes(), pos);
+    pos += paste_to_buf(temp_buf, ".".as_bytes(), pos);
+    pos += paste_to_buf(temp_buf, u32_to_str(osvi.dwBuildNumber, &mut num_buf).as_bytes(), pos);
+    pos += paste_to_buf(temp_buf, ")".as_bytes(), pos);
+
+    unsafe { core::str::from_utf8_unchecked(&temp_buf[..pos]) }
 }

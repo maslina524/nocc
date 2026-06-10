@@ -25,7 +25,7 @@ pub fn get_pc_name(buf: &mut [u8]) -> usize {
     utf16le_to_utf8(&pc_buf, buf)
 }
 
-pub fn get_os_ver() -> RTL_OSVERSIONINFOW {
+pub fn get_os_ver_win() -> RTL_OSVERSIONINFOW {
     let mut osvi = RTL_OSVERSIONINFOW {
         dwOSVersionInfoSize: core::mem::size_of::<RTL_OSVERSIONINFOW>() as ULONG,
         dwMajorVersion: 0,
