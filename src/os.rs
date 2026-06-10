@@ -1,5 +1,6 @@
 use windows::consts::COMPUTER_NAME_DNS_HOSTNAME;
-use windows::link::{GetComputerNameExW, GetEnvironmentVariableW};
+use windows::link::*;
+use windows::types::*;
 use windows::utils::{utf8_to_utf16le, utf16le_to_utf8};
 
 fn get_env(name: &str) -> [u16; 256] {
@@ -22,4 +23,17 @@ pub fn get_pc_name(buf: &mut [u8]) -> usize {
     let mut dword = 256u32;
     unsafe { GetComputerNameExW(COMPUTER_NAME_DNS_HOSTNAME, pc_buf.as_mut_ptr(), &mut dword); }
     utf16le_to_utf8(&pc_buf, buf)
+}
+
+pub fn get_os_ver() -> RTL_OSVERSIONINFOW {
+    let mut osvi = RTL_OSVERSIONINFOW {
+        dwOSVersionInfoSize: core::mem::size_of::<RTL_OSVERSIONINFOW>() as ULONG,
+        dwMajorVersion: 0,
+        dwMinorVersion: 0,
+        dwBuildNumber: 0,
+        dwPlatformId: 0,
+        szCSDVersion: [0; 128],
+    };
+    unsafe { RtlGetVersion(&mut osvi); }
+    osvi
 }
