@@ -45,6 +45,7 @@ link!("kernel32.dll" "system" fn GetStdHandle(nstdhandle: STD_HANDLE) -> HANDLE)
 link!("kernel32.dll" "system" fn WriteConsoleW(hconsoleoutput: HANDLE, lpbuffer: PCWSTR, nnumberofcharstowrite: u32, lpnumberofcharswritten: *mut u32, lpreserved: *const core::ffi::c_void) -> BOOL);
 link!("kernel32.dll" "system" fn GetEnvironmentVariableW(lpname: PCWSTR, lpbuffer: PWSTR, nsize: u32) -> u32);
 link!("kernel32.dll" "system" fn GetComputerNameExW(nametype: NAME_TYPE, lpbuffer: LPTSTR, lpnsize: LPDWORD) -> BOOL);
-link!("ntdll.dll" "system" "RtlGetVersion" fn RtlGetVersion(lpVersionInformation: *mut RTL_OSVERSIONINFOW) -> NTSTATUS);
+link!("ntdll.dll" "system" fn RtlGetVersion(lpVersionInformation: *mut RTL_OSVERSIONINFOW) -> NTSTATUS);
 link!("advapi32.dll" "system" fn RegOpenKeyExW(hkey: HKEY, lpsubkey: LPCWSTR, uloptions: DWORD, samdesired: REGSAM, phkresult: PHKEY) -> LSTATUS);
 link!("advapi32.dll" "system" fn RegQueryValueExW(hkey: HKEY, lpvaluename: LPCWSTR, lpreserved: LPDWORD, lptype: LPDWORD, lpdata: LPBYTE, lpcbdata: LPDWORD) -> LSTATUS);
+link!("advapi32.dll" "system" fn RegCloseKey(hkey: HKEY) -> LSTATUS);
