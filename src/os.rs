@@ -1,4 +1,4 @@
-use windows::consts::COMPUTER_NAME_DNS_HOSTNAME;
+use windows::consts::*;
 use windows::link::*;
 use windows::types::*;
 use windows::utils::{utf8_to_utf16le, utf16le_to_utf8};
@@ -36,4 +36,47 @@ pub fn get_os_ver_win() -> RTL_OSVERSIONINFOW {
     };
     unsafe { RtlGetVersion(&mut osvi); }
     osvi
+}
+
+pub fn read_from_regedit(buf: &mut [u8], hkey_path: HKEY, path: &str, name: &str) -> u32 {
+    let mut hkey: HKEY = 0;
+    let mut path_buf = [0u16; 256];
+    utf8_to_utf16le(path, &mut path_buf);
+
+    let status = unsafe {
+        RegOpenKeyExW(
+            hkey_path,
+            path_buf.as_ptr(),
+            0,
+            KEY_READ,
+            &mut hkey,
+        )
+    };
+    if status != ERROR_SUCCESS {
+        return 0;
+    }
+
+    let mut value_name_buf = [0u16; 256];
+    utf8_to_utf16le(name, &mut value_name_buf);
+    let mut dw_type = REG_SZ;
+    let mut data_size = buf.len() as u32;
+
+    let result = unsafe {
+        RegQueryValueExW(
+            hkey,
+            value_name_buf.as_ptr(),
+            core::ptr::null_mut(),
+            &mut dw_type,
+            buf.as_mut_ptr(),
+            &mut data_size,
+        )
+    };
+
+    unsafe { RegCloseKey(hkey); }
+
+    if result == ERROR_SUCCESS && dw_type == REG_SZ {
+        data_size
+    } else {
+        0
+    }
 }
