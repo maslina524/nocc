@@ -46,3 +46,4 @@ link!("kernel32.dll" "system" fn WriteConsoleW(hconsoleoutput : HANDLE, lpbuffer
 link!("kernel32.dll" "system" fn GetEnvironmentVariableW(lpname : PCWSTR, lpbuffer : PWSTR, nsize : u32) -> u32);
 link!("kernel32.dll" "system" fn GetComputerNameExW(nametype : NAME_TYPE, lpbuffer : LPTSTR, lpnsize : LPDWORD) -> BOOL);
 link!("ntdll.dll" "system" "RtlGetVersion" fn RtlGetVersion(lpVersionInformation: *mut RTL_OSVERSIONINFOW) -> NTSTATUS);
+link!("advapi32.dll" "system" fn RegOpenKeyExW(hkey: HKEY, lpsubkey: LPCWSTR, uloptions: DWORD, samdesired: REGSAM, phkresult: PHKEY) -> LSTATUS);
