@@ -8,7 +8,6 @@ mod os;
 use core::panic::PanicInfo;
 use io::Io;
 use logos::*;
-use os::get_user_name;
 
 #[cfg(not(test))]
 #[panic_handler]
@@ -43,7 +42,7 @@ pub extern "C" fn main() -> i32 {
     paste_to_buf(&mut cur_buf, "\x1b[1;34m".as_bytes(), 0);
     let mut pos = "\x1b[1;34m".len();
 
-    let name = get_user_name();
+    let name = os::get_user_name();
     let name_len = name.iter().position(|&b| b == 0).unwrap_or(name.len());
     paste_to_buf(&mut cur_buf, &name[..name_len], pos);
     pos += name_len;
@@ -52,7 +51,9 @@ pub extern "C" fn main() -> i32 {
     paste_to_buf(&mut cur_buf, string.as_bytes(), pos);
     pos += string.len();
 
-    paste_to_buf(&mut cur_buf, "PC_NAME".as_bytes(), pos);
+    let pc_name = os::get_pc_name();
+    let pc_name_len = pc_name.iter().position(|&b| b == 0).unwrap_or(pc_name.len());
+    paste_to_buf(&mut cur_buf, &pc_name[..pc_name_len], pos);
     info_buf[0] = unsafe { str::from_utf8_unchecked(&cur_buf) };
 
     // PRINT BUFFERS
