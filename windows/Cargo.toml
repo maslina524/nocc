@@ -6,4 +6,5 @@ edition = "2024"
 [dependencies]
 
 [features]
+default = ["windows_raw_dylib"]
 windows_raw_dylib = []
