@@ -38,44 +38,39 @@ pub fn get_os_ver_win() -> RTL_OSVERSIONINFOW {
     osvi
 }
 
-fn read_from_regedit(buf: &mut [u8], hkey_path: HKEY, path: &str, name: &str) -> u32 {
-    let mut hkey: HKEY = 0;
+fn read_from_regedit(buf: &mut [u8], key: HKEY, path: &str, name: &str) -> u32 {
+    let mut wide_buf = [0u16; 512];
     let mut path_buf = [0u16; 256];
     utf8_to_utf16le(path, &mut path_buf);
 
+    let mut hkey = 0;
     let status = unsafe {
-        RegOpenKeyExW(
-            hkey_path,
-            path_buf.as_ptr(),
-            0,
-            KEY_READ,
-            &mut hkey,
-        )
+        RegOpenKeyExW(key, path_buf.as_ptr(), 0, KEY_READ, &mut hkey)
     };
     if status != ERROR_SUCCESS {
         return 0;
     }
 
-    let mut value_name_buf = [0u16; 256];
-    utf8_to_utf16le(name, &mut value_name_buf);
+    let mut val_buf = [0u16; 256];
+    utf8_to_utf16le(name, &mut val_buf);
     let mut dw_type = REG_SZ;
-    let mut data_size = buf.len() as u32;
+    let mut data_size = wide_buf.len() as u32 * 2;
 
     let result = unsafe {
         RegQueryValueExW(
             hkey,
-            value_name_buf.as_ptr(),
+            val_buf.as_ptr(),
             core::ptr::null_mut(),
             &mut dw_type,
-            buf.as_mut_ptr(),
+            wide_buf.as_mut_ptr() as *mut u8,
             &mut data_size,
         )
     };
-
     unsafe { RegCloseKey(hkey); }
 
     if result == ERROR_SUCCESS && dw_type == REG_SZ {
-        data_size
+        let wide_slice = &wide_buf[..data_size as usize / 2];
+        utf16le_to_utf8(wide_slice, buf).try_into().unwrap()
     } else {
         0
     }

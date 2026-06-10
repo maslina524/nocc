@@ -52,6 +52,11 @@ pub extern "C" fn main() -> i32 {
     let os_str = os_ver_as_str(&mut temp_buf, osvi);
     info_buf[2] = os_str;
 
+    // CPU
+    let mut temp_buf = [0u8; 256];
+    let cpu_str = cpu_as_str(&mut temp_buf);
+    info_buf[3] = cpu_str;
+
     // PRINT BUFFERS
     for i in 0..LINES {
         let string = logo_buf[i];
@@ -147,3 +152,14 @@ fn os_ver_as_str<'a>(temp_buf: &'a mut [u8], osvi: RTL_OSVERSIONINFOW) -> &'a st
 
     unsafe { core::str::from_utf8_unchecked(&temp_buf[..pos]) }
 }
+
+fn cpu_as_str<'a>(temp_buf: &'a mut [u8]) -> &'a str {
+    let mut pos = 0;
+    pos += paste_to_buf(temp_buf, "\x1b[38;2;255;165;0mCPU: \x1b[0m".as_bytes(), pos);
+
+    let mut buf = [0u8; 256];
+    let len: u32 = os::get_cpu(&mut buf);
+    pos += paste_to_buf(temp_buf, &buf[..len as usize], pos);
+
+    unsafe { core::str::from_utf8_unchecked(&temp_buf[..pos]) }
+} 
