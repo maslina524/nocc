@@ -39,18 +39,9 @@ pub extern "C" fn main() -> i32 {
     let mut info_buf = [""; LINES];
 
     // USER NAME@PC NAME
-    let mut cur_buf = [0; 255];
-    let mut pos = "\x1b[1;34m".len();
-
-    pos += paste_to_buf(&mut cur_buf, "\x1b[1;34m".as_bytes(), pos);
-    let name_len = os::get_user_name(&mut cur_buf[pos..]);
-    pos += name_len;
-    pos += paste_to_buf(&mut cur_buf, "\x1b[0m@\x1b[1;34m".as_bytes(), pos);
-    let pc_len = os::get_pc_name(&mut cur_buf[pos..]);
-    pos += pc_len;
-
-    let info_line = core::str::from_utf8(&cur_buf[..pos]).unwrap_or("Invalid UTF-8");
-    info_buf[0] = info_line;
+    let mut temp_buf = [0; 255];
+    let owner = owner_as_str(&mut temp_buf);
+    info_buf[0] = owner;
 
     // SPLITTER
     info_buf[1] = "---------------";
@@ -101,6 +92,20 @@ fn u32_to_str<'a>(mut n: u32, buffer: &'a mut [u8; 10]) -> &'a str {
 
     let bytes = &buffer[idx..];
     unsafe { core::str::from_utf8_unchecked(bytes) }
+}
+
+fn owner_as_str<'a>(temp_buf: &'a mut [u8]) -> &'a str {
+    let mut pos = "\x1b[1;34m".len();
+
+    pos += paste_to_buf(temp_buf, "\x1b[1;34m".as_bytes(), pos);
+    let name_len = os::get_user_name(&mut temp_buf[pos..]);
+    pos += name_len;
+
+    pos += paste_to_buf(temp_buf, "\x1b[0m@\x1b[1;34m".as_bytes(), pos);
+    let pc_len = os::get_pc_name(&mut temp_buf[pos..]);
+    pos += pc_len;
+
+    unsafe { core::str::from_utf8_unchecked(&temp_buf[..pos]) }
 }
 
 fn os_ver_as_str<'a>(temp_buf: &'a mut [u8], osvi: RTL_OSVERSIONINFOW) -> &'a str {
