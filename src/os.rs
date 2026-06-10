@@ -38,7 +38,7 @@ pub fn get_os_ver_win() -> RTL_OSVERSIONINFOW {
     osvi
 }
 
-pub fn read_from_regedit(buf: &mut [u8], hkey_path: HKEY, path: &str, name: &str) -> u32 {
+fn read_from_regedit(buf: &mut [u8], hkey_path: HKEY, path: &str, name: &str) -> u32 {
     let mut hkey: HKEY = 0;
     let mut path_buf = [0u16; 256];
     utf8_to_utf16le(path, &mut path_buf);
@@ -79,4 +79,13 @@ pub fn read_from_regedit(buf: &mut [u8], hkey_path: HKEY, path: &str, name: &str
     } else {
         0
     }
+}
+
+pub fn get_cpu(buf: &mut [u8]) -> u32 {
+    read_from_regedit(
+        buf, 
+        HKEY_LOCAL_MACHINE, 
+        r"HARDWARE\DESCRIPTION\System\CentralProcessor\0", 
+        "ProcessorNameString"
+    )
 }
