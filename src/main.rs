@@ -62,7 +62,7 @@ pub extern "C" fn main() -> i32 {
         let string = logo_buf[i];
 
         io.print(string);
-        for _ in string.len()..LINE_LEN_WITH_INDENT {
+        for _ in visible_width(string)..LINE_LEN_WITH_INDENT {
             io.print(" ");
         }
         io.print(ESC_ANSII);
@@ -74,6 +74,20 @@ pub extern "C" fn main() -> i32 {
     0
 }
 
+fn visible_width(s: &str) -> usize {
+    let mut in_escape = false;
+    let mut width = 0;
+    for b in s.as_bytes() {
+        if *b == b'\x1b' {
+            in_escape = true;
+        } else if in_escape && *b == b'm' {
+            in_escape = false;
+        } else if !in_escape {
+            width += 1;
+        }
+    }
+    width
+}
 fn paste_to_buf(buf: &mut [u8], bytes: &[u8], index: usize) -> usize {
     for (i, ch) in bytes.iter().enumerate() {
         buf[index + i] = *ch;
