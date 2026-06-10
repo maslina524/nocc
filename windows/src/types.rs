@@ -22,7 +22,6 @@ pub type NTSTATUS = u32;
 pub type LSTATUS = i64;
 
 #[repr(C)]
-#[derive(Debug)]
 pub struct RTL_OSVERSIONINFOW {
     pub dwOSVersionInfoSize: ULONG,
     pub dwMajorVersion: ULONG,
