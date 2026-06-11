@@ -13,6 +13,7 @@ macro_rules! link_raw_dylib {
     )
 }
 
+#[cfg(not(feature = "windows_raw_dylib"))]
 macro_rules! link_dylib {
     ($library:literal $abi:literal $($link_name:literal)? $(#[$doc:meta])? fn $($function:tt)*) => (
         // Note: the windows-targets crate uses a pre-built Windows.lib import library which we don't

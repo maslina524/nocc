@@ -5,6 +5,7 @@ mod io;
 mod logos;
 mod os;
 
+#[cfg(not(test))]
 use core::panic::PanicInfo;
 use io::Io;
 use logos::*;
