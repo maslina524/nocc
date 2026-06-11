@@ -50,3 +50,4 @@ link!("ntdll.dll" "system" fn RtlGetVersion(lpVersionInformation: *mut RTL_OSVER
 link!("advapi32.dll" "system" fn RegOpenKeyExW(hkey: HKEY, lpsubkey: LPCWSTR, uloptions: DWORD, samdesired: REGSAM, phkresult: PHKEY) -> LSTATUS);
 link!("advapi32.dll" "system" fn RegQueryValueExW(hkey: HKEY, lpvaluename: LPCWSTR, lpreserved: LPDWORD, lptype: LPDWORD, lpdata: LPBYTE, lpcbdata: LPDWORD) -> LSTATUS);
 link!("advapi32.dll" "system" fn RegCloseKey(hkey: HKEY) -> LSTATUS);
+link!("kernel32.dll" "system" fn GetSystemPowerStatus(lpsystempowerstatus: LPSYSTEM_POWER_STATUS) -> BOOL);

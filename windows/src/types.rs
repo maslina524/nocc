@@ -4,6 +4,7 @@ pub type HANDLE = *mut core::ffi::c_void;
 pub type DWORD = u32;
 pub type ULONG = u32;
 pub type WCHAR = u16;
+pub type BYTE = u8;
 pub type BOOL = i32;
 
 pub type PCSTR = *const u8;
@@ -18,6 +19,7 @@ pub type NAME_TYPE = u32;
 pub type HKEY = u32;
 pub type PHKEY = *const HKEY;
 pub type REGSAM = u32;
+pub type LPSYSTEM_POWER_STATUS = *mut SYSTEM_POWER_STATUS;
 pub type NTSTATUS = u32;
 pub type LSTATUS = i64;
 
@@ -29,4 +31,14 @@ pub struct RTL_OSVERSIONINFOW {
     pub dwBuildNumber: ULONG,
     pub dwPlatformId: ULONG,
     pub szCSDVersion: [WCHAR; 128],
+}
+
+#[repr(C)]
+pub struct SYSTEM_POWER_STATUS {
+    pub ACLineStatus: BYTE,
+    pub BatteryFlag: BYTE,
+    pub BatteryLifePercent: BYTE,
+    pub Reserved1: BYTE,
+    pub BatteryLifeTime: DWORD,
+    pub BatteryFullLifeTime: DWORD,
 }
