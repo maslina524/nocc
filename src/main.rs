@@ -12,12 +12,9 @@ use windows::types::RTL_OSVERSIONINFOW;
 
 #[cfg(not(test))]
 #[panic_handler]
-fn panic(info: &PanicInfo) -> ! {
+fn panic(_info: &PanicInfo) -> ! {
     let io = Io::new();
     io.print("panicked\n");
-    if let Some(message) = info.message().as_str() {
-        io.print(message);
-    }
     loop {}
 }
 
@@ -27,10 +24,17 @@ const LINE_LEN_WITH_INDENT: usize = 55;
 #[unsafe(no_mangle)]
 pub extern "C" fn main() -> i32 {
     let io = Io::new();
+    let osvi = os::get_os_ver_win();
 
     // CREATE LOGO BUFFER
     let mut logo_buf = [""; LINES];
-    let logo = WIN11;
+    let logo = match (osvi.dwMajorVersion, osvi.dwMinorVersion, osvi.dwBuildNumber) {
+        (6, 1, _) => WIN7,
+        (6, 2 | 3, _) => WIN10_8,
+        (10, 0, build) if build >= 22000 => WIN11,
+        (10, 0, build) if build >= 10240 => WIN10_8,
+        _ => WIN10_8
+    };
     for (i, line) in logo.iter().enumerate() {
         logo_buf[i] = line;
     }
@@ -47,7 +51,6 @@ pub extern "C" fn main() -> i32 {
     info_buf[1] = "---------------";
 
     // OS NAME
-    let osvi = os::get_os_ver_win();
     let mut temp_buf = [0u8; 256];
     let os_str = os_ver_as_str(&mut temp_buf, osvi);
     info_buf[2] = os_str;
