@@ -122,6 +122,40 @@ fn visible_width(s: &str) -> usize {
     width
 }
 
+pub fn to_ansi<'a>(buf: &mut [u8], string: &'a str) {
+    let mut pos = 0;
+    let mut spec = false;
+    for ch in string.chars() {
+        if spec {
+            let r = match ch {
+                '1' => Some(BLUE_ANSI),
+                '2' => Some(RED_ANSI),
+                '3' => Some(GREEN_ANSI),
+                '4' => Some(YELLOW_ANSI),
+                _ => None
+            };
+
+            if let Some(c) = r {
+                pos += paste_to_buf(buf, c.as_bytes(), pos)
+            } else {
+                buf[pos - 1] = '$' as u8;
+                buf[pos] = ch as u8;
+            };
+
+            spec = false;
+            pos += 1;
+            continue;
+        }
+
+        if ch == '$' {
+            spec = true;
+        } else {
+            buf[pos] = ch as u8;
+        }
+        pos += 1;
+    }
+}
+
 fn paste_to_buf(buf: &mut [u8], bytes: &[u8], index: usize) -> usize {
     for (i, ch) in bytes.iter().enumerate() {
         buf[index + i] = *ch;
