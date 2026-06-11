@@ -34,16 +34,13 @@ pub extern "C" fn main() -> i32 {
 
     // CREATE LOGO BUFFER
     let mut logo_buf = [""; LINES];
-    let mut logo = match (osvi.dwMajorVersion, osvi.dwMinorVersion, osvi.dwBuildNumber) {
+    let logo = match (osvi.dwMajorVersion, osvi.dwMinorVersion, osvi.dwBuildNumber) {
         (6, 1, _) => WIN7,
         (6, 2 | 3, _) => WIN10_8,
         (10, 0, build) if build >= 22000 => WIN11,
         (10, 0, build) if build >= 10240 => WIN10_8,
         _ => WIN10_8
     };
-    let mut temp_buf = [0u8; 1024];
-    to_ansi(&mut temp_buf, logo);
-    logo = unsafe { core::str::from_utf8_unchecked(&temp_buf) };
     for (i, line) in logo.lines().enumerate() {
         logo_buf[i] = line;
     }
@@ -118,9 +115,14 @@ pub extern "C" fn main() -> i32 {
     // PRINT BUFFERS
     for i in 0..LINES {
         let string = logo_buf[i];
+        let len = visible_width(string);
 
-        io.print(string);
-        for _ in 0..12 {
+        let mut temp_buf = [0u8; 1024];
+        to_ansi(&mut temp_buf, string);
+        let clear_string = unsafe { core::str::from_utf8_unchecked(&temp_buf) };
+
+        io.print(clear_string);
+        for _ in 0..37 - len + 15 {
             io.print(" ");
         }
         io.print(ESC_ANSI);
@@ -133,18 +135,7 @@ pub extern "C" fn main() -> i32 {
 }
 
 fn visible_width(s: &str) -> usize {
-    let mut in_escape = false;
-    let mut width = 0;
-    for b in s.as_bytes() {
-        if *b == b'\x1b' {
-            in_escape = true;
-        } else if in_escape && *b == b'm' {
-            in_escape = false;
-        } else if !in_escape {
-            width += 1;
-        }
-    }
-    width
+    s.len() - s.chars().filter(|&c| c == '$').count() * 2
 }
 
 pub fn to_ansi<'a>(buf: &mut [u8], string: &'a str) {
@@ -162,10 +153,7 @@ pub fn to_ansi<'a>(buf: &mut [u8], string: &'a str) {
 
             if let Some(c) = r {
                 pos += paste_to_buf(buf, c.as_bytes(), pos)
-            } else {
-                buf[pos - 1] = '$' as u8;
-                buf[pos] = ch as u8;
-            };
+            }
 
             spec = false;
             pos += 1;
