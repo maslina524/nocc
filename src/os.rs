@@ -93,3 +93,25 @@ pub fn get_gpu(buf: &mut [u8]) -> u32 {
         "DriverDesc"
     )
 }
+
+pub fn get_battery() -> Option<u8> {
+    let mut status = SYSTEM_POWER_STATUS {
+        ACLineStatus: 0,
+        BatteryFlag: 0,
+        BatteryLifePercent: 0,
+        Reserved1: 0,
+        BatteryLifeTime: 0,
+        BatteryFullLifeTime: 0,
+    };
+
+    let success = unsafe { GetSystemPowerStatus(&mut status) };
+    if success == 0 {
+        return None;
+    }
+
+    if (status.BatteryFlag & 128) != 0 || status.BatteryLifePercent == 255 {
+        None
+    } else {
+        Some(status.BatteryLifePercent)
+    }
+}
