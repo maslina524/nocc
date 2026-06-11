@@ -41,24 +41,35 @@ pub extern "C" fn main() -> i32 {
 
     // CREATE INFO BUFFER
     let mut info_buf = [""; LINES];
+    let mut buf_pos = 0;
 
     // USER NAME@PC NAME
     let mut temp_buf = [0; 255];
     let owner = owner_as_str(&mut temp_buf);
-    info_buf[0] = owner;
+    info_buf[buf_pos] = owner;
+    buf_pos += 1;
 
     // SPLITTER
-    info_buf[1] = "---------------";
+    info_buf[buf_pos] = "---------------";
+    buf_pos += 1;
 
     // OS NAME
     let mut temp_buf = [0u8; 256];
     let os_str = os_ver_as_str(&mut temp_buf, osvi);
-    info_buf[2] = os_str;
+    info_buf[buf_pos] = os_str;
+    buf_pos += 1;
 
     // CPU
     let mut temp_buf = [0u8; 256];
     let cpu_str = cpu_as_str(&mut temp_buf);
-    info_buf[3] = cpu_str;
+    info_buf[buf_pos] = cpu_str;
+    buf_pos += 1;
+
+    // GPU
+    let mut temp_buf = [0u8; 256];
+    let gpu_str = gpu_as_str(&mut temp_buf);
+    info_buf[buf_pos] = gpu_str;
+    buf_pos += 1;
 
     // PRINT BUFFERS
     for i in 0..LINES {
@@ -176,6 +187,17 @@ fn cpu_as_str<'a>(temp_buf: &'a mut [u8]) -> &'a str {
 
     let mut buf = [0u8; 256];
     let len: u32 = os::get_cpu(&mut buf);
+    pos += paste_to_buf(temp_buf, &buf[..len as usize], pos);
+
+    unsafe { core::str::from_utf8_unchecked(&temp_buf[..pos]) }
+} 
+
+fn gpu_as_str<'a>(temp_buf: &'a mut [u8]) -> &'a str {
+    let mut pos = 0;
+    pos += paste_to_buf(temp_buf, "\x1b[38;2;255;165;0mGPU: \x1b[0m".as_bytes(), pos);
+
+    let mut buf = [0u8; 256];
+    let len: u32 = os::get_gpu(&mut buf);
     pos += paste_to_buf(temp_buf, &buf[..len as usize], pos);
 
     unsafe { core::str::from_utf8_unchecked(&temp_buf[..pos]) }
