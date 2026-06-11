@@ -94,7 +94,12 @@ pub fn get_gpu(buf: &mut [u8]) -> u32 {
     )
 }
 
-pub fn get_battery() -> Option<u8> {
+pub struct Battery {
+    pub level: u8,
+    pub charging: bool
+}
+
+pub fn get_battery() -> Option<Battery> {
     let mut status = SYSTEM_POWER_STATUS {
         ACLineStatus: 0,
         BatteryFlag: 0,
@@ -109,9 +114,12 @@ pub fn get_battery() -> Option<u8> {
         return None;
     }
 
-    if (status.BatteryFlag & 128) != 0 || status.BatteryLifePercent == 255 {
+    let flags = status.BatteryFlag;
+    if flags & 128 != 0 || flags == 255 {
         None
     } else {
-        Some(status.BatteryLifePercent)
+        Some(
+            Battery { level: status.BatteryLifePercent, charging: flags & 8 == 1 }
+        )
     }
 }

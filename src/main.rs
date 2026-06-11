@@ -11,7 +11,7 @@ use io::Io;
 use logos::*;
 use windows::types::RTL_OSVERSIONINFOW;
 
-use crate::os::get_battery;
+use crate::os::{Battery, get_battery};
 
 #[cfg(not(test))]
 #[panic_handler]
@@ -21,7 +21,12 @@ fn panic(_info: &PanicInfo) -> ! {
     loop {}
 }
 
-const ESC_ANSII: &str = "\x1b[0m";
+const RED_ANSI: &str = "\x1b[1;31m";
+const YELLOW_ANSI: &str = "\x1b[1;32m";
+const GREEN_ANSI: &str = "\x1b[1;33m";
+const BLUE_ANSI: &str = "\x1b[1;34m";
+
+const ESC_ANSI: &str = "\x1b[0m";
 const LINE_LEN_WITH_INDENT: usize = 55;
 
 #[unsafe(no_mangle)]
@@ -31,14 +36,17 @@ pub extern "C" fn main() -> i32 {
 
     // CREATE LOGO BUFFER
     let mut logo_buf = [""; LINES];
-    let logo = match (osvi.dwMajorVersion, osvi.dwMinorVersion, osvi.dwBuildNumber) {
+    let mut logo = match (osvi.dwMajorVersion, osvi.dwMinorVersion, osvi.dwBuildNumber) {
         (6, 1, _) => WIN7,
         (6, 2 | 3, _) => WIN10_8,
-        (10, 0, build) if build >= 22000 => WIN11,
+        (10, 0, build) if build >= 22000 => WIN7,
         (10, 0, build) if build >= 10240 => WIN10_8,
         _ => WIN10_8
     };
-    for (i, line) in logo.iter().enumerate() {
+    let mut temp_buf = [0u8; 1024];
+    to_ansi(&mut temp_buf, logo);
+    logo = unsafe { core::str::from_utf8_unchecked(&temp_buf) };
+    for (i, line) in logo.lines().enumerate() {
         logo_buf[i] = line;
     }
 
@@ -76,7 +84,7 @@ pub extern "C" fn main() -> i32 {
 
     // BATTERY
     let mut temp_buf = [0u8; 256];
-    if let Some(b) = Some(0) {
+    if let Some(b) = get_battery() {
         let gpu_str = battery_as_str(&mut temp_buf, b);
         info_buf[buf_pos] = gpu_str;
         buf_pos += 1;
@@ -90,12 +98,12 @@ pub extern "C" fn main() -> i32 {
         for _ in visible_width(string)..LINE_LEN_WITH_INDENT {
             io.print(" ");
         }
-        io.print(ESC_ANSII);
+        io.print(ESC_ANSI);
         io.print(info_buf[i]);
         io.print("\n");
     }
 
-    io.print(ESC_ANSII);
+    io.print(ESC_ANSI);
     0
 }
 
@@ -113,6 +121,7 @@ fn visible_width(s: &str) -> usize {
     }
     width
 }
+
 fn paste_to_buf(buf: &mut [u8], bytes: &[u8], index: usize) -> usize {
     for (i, ch) in bytes.iter().enumerate() {
         buf[index + i] = *ch;
@@ -214,12 +223,18 @@ fn gpu_as_str<'a>(temp_buf: &'a mut [u8]) -> &'a str {
     unsafe { core::str::from_utf8_unchecked(&temp_buf[..pos]) }
 } 
 
-fn battery_as_str<'a>(temp_buf: &'a mut [u8], charge: u8) -> &'a str {
+fn battery_as_str<'a>(temp_buf: &'a mut [u8], battery: Battery) -> &'a str {
     let mut pos = 0;
     pos += paste_to_buf(temp_buf, "\x1b[38;2;255;165;0mBATTERY: \x1b[0m".as_bytes(), pos);
 
     let mut buf = [0u8; 10];
-    pos += paste_to_buf(temp_buf, u32_to_str(charge as u32, &mut buf).as_bytes(), pos);
+    pos += paste_to_buf(temp_buf, u32_to_str(battery.level as u32, &mut buf).as_bytes(), pos);
+
+    if battery.charging {
+        pos += paste_to_buf(temp_buf, "% [AC Connected]".as_bytes(), pos);
+    } else {
+        pos += paste_to_buf(temp_buf, "%".as_bytes(), pos);
+    }
 
     unsafe { core::str::from_utf8_unchecked(&temp_buf[..pos]) }
 } 
