@@ -27,6 +27,8 @@ const GREEN_ANSI: &str = "\x1b[1;33m";
 const BLUE_ANSI: &str = "\x1b[1;34m";
 const ESC_ANSI: &str = "\x1b[0m";
 
+pub const LINES: usize = 18;
+
 #[unsafe(no_mangle)]
 pub extern "C" fn main() -> i32 {
     let io = Io::new();
