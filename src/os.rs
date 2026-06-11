@@ -84,3 +84,12 @@ pub fn get_cpu(buf: &mut [u8]) -> u32 {
         "ProcessorNameString"
     )
 }
+
+pub fn get_gpu(buf: &mut [u8]) -> u32 {
+    read_from_regedit(
+        buf, 
+        HKEY_LOCAL_MACHINE, 
+        r"SYSTEM\CurrentControlSet\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}\0000", 
+        "DriverDesc"
+    )
+}
