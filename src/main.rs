@@ -11,6 +11,8 @@ use io::Io;
 use logos::*;
 use windows::types::RTL_OSVERSIONINFOW;
 
+use crate::os::get_battery;
+
 #[cfg(not(test))]
 #[panic_handler]
 fn panic(_info: &PanicInfo) -> ! {
@@ -71,6 +73,14 @@ pub extern "C" fn main() -> i32 {
     let gpu_str = gpu_as_str(&mut temp_buf);
     info_buf[buf_pos] = gpu_str;
     buf_pos += 1;
+
+    // BATTERY
+    let mut temp_buf = [0u8; 256];
+    if let Some(b) = Some(0) {
+        let gpu_str = battery_as_str(&mut temp_buf, b);
+        info_buf[buf_pos] = gpu_str;
+        buf_pos += 1;
+    }
 
     // PRINT BUFFERS
     for i in 0..LINES {
@@ -200,6 +210,16 @@ fn gpu_as_str<'a>(temp_buf: &'a mut [u8]) -> &'a str {
     let mut buf = [0u8; 256];
     let len: u32 = os::get_gpu(&mut buf);
     pos += paste_to_buf(temp_buf, &buf[..len as usize], pos);
+
+    unsafe { core::str::from_utf8_unchecked(&temp_buf[..pos]) }
+} 
+
+fn battery_as_str<'a>(temp_buf: &'a mut [u8], charge: u8) -> &'a str {
+    let mut pos = 0;
+    pos += paste_to_buf(temp_buf, "\x1b[38;2;255;165;0mBATTERY: \x1b[0m".as_bytes(), pos);
+
+    let mut buf = [0u8; 10];
+    pos += paste_to_buf(temp_buf, u32_to_str(charge as u32, &mut buf).as_bytes(), pos);
 
     unsafe { core::str::from_utf8_unchecked(&temp_buf[..pos]) }
 } 
