@@ -1,0 +1,15 @@
+$1        wWWWWWWWWWw                  
+$1       wWWWWWWWWWWWW    $2w--      --/w
+$1      WWWWWWWWWWWWWw   $2wWWWWWWWWWWWWW
+$1     wWWWWWWWWWWWWw   $2wWWWWWWWWWWWW' 
+$1    'WWWWWWWWWWWWw   $2wWWWWWWWWWWWWW  
+$1    W/--      --w    $2'*WWWWWWWWWW*'  
+$1                       $2'*WWWWWWW*'   
+$3    wWWWWWWWWWw                      
+$3   wWWWWWWWWWWWW    $4w--      --/w    
+$3  wWWWWWWWWWWWWw   $4wWWWWWWWWWWWWW    
+$3 wWWWWWWWWWWWWw   $4WWWWWWWWWWWWW'     
+$3'WWWWWWWWWWWWw   $4wWWWWWWWWWWWWW      
+$3W/--      --w    $4'*WWWWWWWWWW*'      
+$3                   $4'*WWWWWWW*'       
+                                     
