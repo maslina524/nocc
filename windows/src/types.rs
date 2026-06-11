@@ -14,6 +14,7 @@ pub type LPTSTR = *mut u16;
 pub type LPDWORD = *mut u32;
 pub type LPCWSTR = *const u16;
 pub type LPBYTE = *const u8;
+pub type LPWSTR = *mut u16;
 
 pub type NAME_TYPE = u32;
 pub type HKEY = u32;
