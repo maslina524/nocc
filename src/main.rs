@@ -25,9 +25,7 @@ const RED_ANSI: &str = "\x1b[1;31m";
 const YELLOW_ANSI: &str = "\x1b[1;32m";
 const GREEN_ANSI: &str = "\x1b[1;33m";
 const BLUE_ANSI: &str = "\x1b[1;34m";
-
 const ESC_ANSI: &str = "\x1b[0m";
-const LINE_LEN_WITH_INDENT: usize = 55;
 
 #[unsafe(no_mangle)]
 pub extern "C" fn main() -> i32 {
@@ -39,7 +37,7 @@ pub extern "C" fn main() -> i32 {
     let mut logo = match (osvi.dwMajorVersion, osvi.dwMinorVersion, osvi.dwBuildNumber) {
         (6, 1, _) => WIN7,
         (6, 2 | 3, _) => WIN10_8,
-        (10, 0, build) if build >= 22000 => WIN7,
+        (10, 0, build) if build >= 22000 => WIN11,
         (10, 0, build) if build >= 10240 => WIN10_8,
         _ => WIN10_8
     };
@@ -90,12 +88,39 @@ pub extern "C" fn main() -> i32 {
         buf_pos += 1;
     }
 
+    // COLOR BLOCKS
+    buf_pos += 1;
+
+    let mut color_bufs = [[0u8; 128]; 2];
+    let mut color_lens = [0; 2];
+
+    for (idx, &c) in [40, 100].iter().enumerate() {
+        let temp_buf = &mut color_bufs[idx];
+        let mut blocks_pos = 0;
+
+        for i in 0..=7 {
+            let mut num_buf = [0u8; 10];
+            blocks_pos += paste_to_buf(temp_buf, "\x1b[1;".as_bytes(), blocks_pos);
+            let num_str = u32_to_str(c + i, &mut num_buf);
+            blocks_pos += paste_to_buf(temp_buf, num_str.as_bytes(), blocks_pos);
+            blocks_pos += paste_to_buf(temp_buf, "m   ".as_bytes(), blocks_pos);
+        }
+
+        blocks_pos += paste_to_buf(temp_buf, ESC_ANSI.as_bytes(), blocks_pos);
+        color_lens[idx] = blocks_pos;
+    }
+
+    info_buf[buf_pos] = unsafe { core::str::from_utf8_unchecked(&color_bufs[0][..color_lens[0]]) };
+    buf_pos += 1;
+    info_buf[buf_pos] = unsafe { core::str::from_utf8_unchecked(&color_bufs[1][..color_lens[1]]) };
+    // buf_pos += 1;
+    
     // PRINT BUFFERS
     for i in 0..LINES {
         let string = logo_buf[i];
 
         io.print(string);
-        for _ in visible_width(string)..LINE_LEN_WITH_INDENT {
+        for _ in 0..12 {
             io.print(" ");
         }
         io.print(ESC_ANSI);
