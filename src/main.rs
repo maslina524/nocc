@@ -94,7 +94,9 @@ pub extern "C" fn main() -> i32 {
         pos += paste_to_buf(buf, &drive.name, pos);
         pos += paste_to_buf(buf, "): \x1b[0;m[ \x1b[1;35m".as_bytes(), pos);
 
-        let divisions = (1.0 / (drive.max as f64 / drive.busy as f64) * 10.0) as u8;
+        let raw_percent = 1.0 / (drive.max as f64 / drive.busy as f64);
+        let percent = (raw_percent * 100.0) as u32;
+        let divisions = (raw_percent * 10.0) as u8;
         for _ in 0..divisions {
             pos += paste_to_buf(buf, "/".as_bytes(), pos);
         }
@@ -103,7 +105,10 @@ pub extern "C" fn main() -> i32 {
         for _ in divisions..10 {
             pos += paste_to_buf(buf, "/".as_bytes(), pos);
         }
-        pos += paste_to_buf(buf, " ]".as_bytes(), pos);
+        pos += paste_to_buf(buf, " ] ".as_bytes(), pos);
+        let mut num_buf = [0u8; 10];
+        pos += paste_to_buf(buf, u32_to_str(percent, &mut num_buf).as_bytes(), pos);
+        pos += paste_to_buf(buf, "%".as_bytes(), pos);
 
         let s = unsafe { core::str::from_utf8_unchecked(&drives_storage[i][..pos]) };
         info_buf[buf_pos] = unsafe { core::mem::transmute::<&str, &'static str>(s) };
@@ -129,7 +134,7 @@ pub extern "C" fn main() -> i32 {
         let mut blocks_pos = 0;
 
         for i in 0..=7 {
-            let mut num_buf = [0u8; 24];
+            let mut num_buf = [0u8; 10];
             blocks_pos += paste_to_buf(temp_buf, "\x1b[1;".as_bytes(), blocks_pos);
             let num_str = u32_to_str(c + i, &mut num_buf);
             blocks_pos += paste_to_buf(temp_buf, num_str.as_bytes(), blocks_pos);
@@ -150,7 +155,7 @@ pub extern "C" fn main() -> i32 {
         let string = logo_buf[i];
         let len = visible_width(string);
 
-        let mut temp_buf = [0u8; 2424];
+        let mut temp_buf = [0u8; 1024];
         to_ansi(&mut temp_buf, string);
         let clear_string = unsafe { core::str::from_utf8_unchecked(&temp_buf) };
 
@@ -209,7 +214,7 @@ fn paste_to_buf(buf: &mut [u8], bytes: &[u8], index: usize) -> usize {
     bytes.len()
 }
 
-fn u64_to_str<'a>(mut n: u64, buffer: &'a mut [u8; 24]) -> &'a str {
+fn u32_to_str<'a>(mut n: u32, buffer: &'a mut [u8; 10]) -> &'a str {
     let mut idx = buffer.len();
     
     if n == 0 {
@@ -225,10 +230,6 @@ fn u64_to_str<'a>(mut n: u64, buffer: &'a mut [u8; 24]) -> &'a str {
 
     let bytes = &buffer[idx..];
     unsafe { core::str::from_utf8_unchecked(bytes) }
-}
-
-fn u32_to_str<'a>(n: u32, buffer: &'a mut [u8; 24]) -> &'a str {
-    u64_to_str(n as u64, buffer)
 }
 
 fn owner_as_str<'a>(temp_buf: &'a mut [u8]) -> &'a str {
@@ -274,7 +275,7 @@ fn os_ver_as_str<'a>(temp_buf: &'a mut [u8], osvi: RTL_OSVERSIONINFOW) -> &'a st
     pos += paste_to_buf(temp_buf, build.as_bytes(), pos);
     pos += paste_to_buf(temp_buf, " (".as_bytes(), pos);
 
-    let mut num_buf = [0u8; 24];
+    let mut num_buf = [0u8; 10];
     pos += paste_to_buf(temp_buf, u32_to_str(osvi.dwMajorVersion, &mut num_buf).as_bytes(), pos);
     pos += paste_to_buf(temp_buf, ".".as_bytes(), pos);
     pos += paste_to_buf(temp_buf, u32_to_str(osvi.dwMinorVersion, &mut num_buf).as_bytes(), pos);
@@ -311,7 +312,7 @@ fn battery_as_str<'a>(temp_buf: &'a mut [u8], battery: Battery) -> &'a str {
     let mut pos = 0;
     pos += paste_to_buf(temp_buf, "\x1b[38;2;255;165;0mBATTERY: \x1b[0m".as_bytes(), pos);
 
-    let mut buf = [0u8; 24];
+    let mut buf = [0u8; 10];
     pos += paste_to_buf(temp_buf, u32_to_str(battery.level as u32, &mut buf).as_bytes(), pos);
 
     if battery.charging {
