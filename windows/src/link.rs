@@ -52,3 +52,4 @@ link!("advapi32.dll" "system" fn RegQueryValueExW(hkey: HKEY, lpvaluename: LPCWS
 link!("advapi32.dll" "system" fn RegCloseKey(hkey: HKEY) -> LSTATUS);
 link!("kernel32.dll" "system" fn GetSystemPowerStatus(lpsystempowerstatus: LPSYSTEM_POWER_STATUS) -> BOOL);
 link!("kernel32.dll" "system" fn GetLogicalDriveStringsW(nbufferlength: DWORD, lpbuffer: LPWSTR) -> DWORD);
+link!("kernel32.dll" "system" fn GetDiskFreeSpaceExW(lpdirectoryname: LPCWSTR, lpfreebytesavailable: PLARGE_INTEGER, lptotalnumberofbytes: PLARGE_INTEGER, lptotalnumberoffreebytes: PLARGE_INTEGER) -> BOOL);

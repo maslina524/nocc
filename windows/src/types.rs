@@ -3,6 +3,7 @@ pub type HANDLE = *mut core::ffi::c_void;
 
 pub type DWORD = u32;
 pub type ULONG = u32;
+pub type UINT = u32;
 pub type WCHAR = u16;
 pub type BYTE = u8;
 pub type BOOL = i32;
@@ -10,6 +11,7 @@ pub type BOOL = i32;
 pub type PCSTR = *const u8;
 pub type PWSTR = *mut u16;
 pub type PCWSTR = *const u16;
+pub type PLARGE_INTEGER = *mut u64;
 pub type LPTSTR = *mut u16;
 pub type LPDWORD = *mut u32;
 pub type LPCWSTR = *const u16;
