@@ -123,3 +123,62 @@ pub fn get_battery() -> Option<Battery> {
         )
     }
 }
+
+#[derive(Default, Copy, Clone)]
+pub struct Drive {
+    pub name: [u8; 32],
+    pub max: u64,
+    pub busy: u64
+}
+
+pub fn get_drives(drives_buf: &mut [Drive]) -> usize {
+    let mut raw_drives = [0u16; 256];
+    unsafe { GetLogicalDriveStringsW(256, &mut raw_drives as *mut u16) };
+
+    let mut drive_names = [[0u16; 32]; 32];
+    let mut pos = 0;
+    let mut cur_drive = [0u16; 32];
+    let mut cur_drive_len = 0;
+    let mut drives_len = 0;
+    while pos < 256 {
+        let ch = raw_drives[pos];
+        if ch == 0 {
+            if cur_drive_len != 0 {
+                drive_names[drives_len] = cur_drive;
+                cur_drive = [0u16; 32];
+                cur_drive_len = 0;
+                drives_len += 1;
+            }
+        } else {
+            cur_drive[cur_drive_len] = ch;
+            cur_drive_len += 1;
+        }
+
+        pos += 1;
+    }
+
+    for i in 0..drives_len {
+        let drive_name = drive_names[i];
+        let mut free_available = 0u64;
+        let mut total_bytes = 0u64;
+        let mut total_free_bytes = 0u64;
+
+        unsafe { GetDiskFreeSpaceExW(
+            drive_name.as_ptr() as *const u16, 
+            &mut free_available as *mut u64, 
+            &mut total_bytes as *mut u64, 
+            &mut total_free_bytes as *mut u64
+        ) };
+
+        let mut drive_name_buf = [0u8; 32];
+        utf16le_to_utf8(&drive_name, &mut drive_name_buf);
+        let drive = Drive {
+            name: drive_name_buf,
+            max: total_bytes,
+            busy: total_bytes - free_available
+        };
+        drives_buf[i] = drive;
+    }
+
+    drives_len
+}
